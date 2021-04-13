@@ -6,13 +6,7 @@ const toursData = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
-const app = express();
-
-// express.json() => retorna um middleware - é uma função que permite que possamos modificar os dados vindos de uma request. (middle: esta entre a request e response)
-app.use(express.json());
-
-// função -> router handle; tours: resources
-app.get('/api/v1/tours', (req, res) => {
+const getAllTours = (req, res) => {
   res.status(200).json({
     // JSend format
     status: 'sucess',
@@ -21,10 +15,9 @@ app.get('/api/v1/tours', (req, res) => {
       tours: toursData,
     },
   });
-});
+};
 
-// Acessando os dados de um unico Tour; quando definios o endpoint com :nome, estamos falando que ele é um parametro. Para definirmos parametros da url que são opções utiliza-se /:y?
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
   // Acessando os parametros da URL
   // console.log(req.params); // retorna um objeto contendo todos os parametros da url: {id: numParametro}
 
@@ -45,10 +38,9 @@ app.get('/api/v1/tours/:id', (req, res) => {
       message: 'Page not Found',
     });
   }
-});
+};
 
-// Adding new tour
-app.post(`/api/v1/tours/`, (req, res) => {
+const createNewTour = (req, res) => {
   // Por padrão os dados enviados estarão no body da request, porém, usando o express estes só estam disponiveis através dos middlewares
   // console.log(req.body);
 
@@ -73,7 +65,60 @@ app.post(`/api/v1/tours/`, (req, res) => {
   );
 
   // Obs: Mesmo quando estamos enviando um dado do client, é necessário enviar uma response do server
-});
+};
+
+const updateTour = (req, res) => {
+  const id = Number(req.params.id);
+
+  if (id > toursData.length) {
+    return res.status(404, {
+      status: 'fail',
+      message: 'Page not found',
+    });
+  }
+
+  res.status(200).json({
+    status: 'sucess',
+    data: {
+      tour: '<Updated Tour here...>',
+    },
+  });
+};
+
+const deleteTour = (req, res) => {
+  const id = req.params.id;
+
+  if (id > toursData.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Page not found',
+    });
+  }
+
+  res.status(204).json({
+    status: 'sucess',
+    data: null,
+  });
+};
+
+const app = express();
+
+// express.json() => retorna um middleware - é uma função que permite que possamos modificar os dados vindos de uma request. (middle: esta entre a request e response)
+app.use(express.json());
+
+// função -> router handle; tours: resources
+// app.get('/api/v1/tours', getAllTours);
+//app.get('/api/v1/tours/:id', getTour);
+//app.post(`/api/v1/tours/`, createNewTour);
+//app.patch('/api/v1/tours/:id', updateTour);
+//app.delete('/api/v1/tours/:id', deleteTour);
+
+app.route('/api/v1/tours').get(getAllTours).post(createNewTour);
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour);
 
 const port = 3000;
 app.listen(port, () => {
