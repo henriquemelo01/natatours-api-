@@ -20,7 +20,13 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(morgan('dev')); // log information about request
+// Middleware só é "disparado" quando estamos no ambiente de desenvolvimento
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev')); // log information about request
+}
+
+app.use(express.static(`${__dirname}/public`)); // Servindo arquivos estaticos para rota, permite acessar /overview.html
 
 // ROUTES (Mounting)
 

@@ -7,6 +7,29 @@ const toursData = JSON.parse(
 
 // ROUTE HANDLERS (Controlers)
 
+// Middleware param controller
+exports.checkId = (req, res, next, value) => {
+  if (value > toursData.length - 1) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Page not Found',
+    });
+  }
+
+  next();
+};
+
+exports.checkNewTourData = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    // status = 400 -> bad request
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Bad Request',
+    });
+  }
+  next();
+};
+
 exports.getAllTours = (req, res) => {
   // res.json é um middleware que finaliza the request-response cycle - não chama a função next
   res.status(200).json({
@@ -27,20 +50,12 @@ exports.getTour = (req, res) => {
   const id = Number(req.params.id);
   const tour = toursData.find((tour) => tour.id === id);
 
-  if (tour) {
-    const currentTour = toursData[id];
-    res.status(200).json({
-      status: 'sucess',
-      data: {
-        tour: tour,
-      },
-    });
-  } else {
-    res.status(404).json({
-      status: 'fail',
-      message: 'Page not Found',
-    });
-  }
+  res.status(200).json({
+    status: 'sucess',
+    data: {
+      tour: tour,
+    },
+  });
 };
 
 exports.createNewTour = (req, res) => {
@@ -71,15 +86,6 @@ exports.createNewTour = (req, res) => {
 };
 
 exports.updateTour = (req, res) => {
-  const id = Number(req.params.id);
-
-  if (id > toursData.length) {
-    return res.status(404, {
-      status: 'fail',
-      message: 'Page not found',
-    });
-  }
-
   res.status(200).json({
     status: 'sucess',
     data: {
@@ -89,15 +95,6 @@ exports.updateTour = (req, res) => {
 };
 
 exports.deleteTour = (req, res) => {
-  const id = req.params.id;
-
-  if (id > toursData.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Page not found',
-    });
-  }
-
   res.status(204).json({
     status: 'sucess',
     data: null,
