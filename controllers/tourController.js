@@ -31,32 +31,43 @@ exports.checkNewTourData = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = (req, res) => {
-  // res.json é um middleware que finaliza the request-response cycle - não chama a função next
-  res.status(200).json({
-    // JSend format
-    status: 'sucess',
-    results: toursData.length,
-    requestAt: req.currentTime,
-    data: {
-      tours: toursData,
-    },
-  });
+exports.getAllTours = async (req, res) => {
+  try {
+    // Query MongoDB -> db.tours.find()
+    const tours = await Tour.find();
+    res.status(200).json({
+      status: 'success',
+      results: tours.length,
+      data: {
+        tours: tours,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
 };
 
-exports.getTour = (req, res) => {
-  // Acessando os parametros da URL
-  // console.log(req.params); // retorna um objeto contendo todos os parametros da url: {id: numParametro}
+exports.getTour = async (req, res) => {
+  try {
+    const id = req.params.id;
+    //MongoDB query -> db.tours.find({_id: idNumber}) || Tour.findOne({ _id: req.params.id})
+    const tour = await Tour.findById(id);
 
-  const id = Number(req.params.id);
-  const tour = toursData.find((tour) => tour.id === id);
-
-  res.status(200).json({
-    status: 'sucess',
-    data: {
-      tour: tour,
-    },
-  });
+    res.status(200).json({
+      status: 'sucess',
+      data: {
+        tour: tour,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
 };
 
 exports.createNewTour = async (req, res) => {
@@ -80,16 +91,29 @@ exports.createNewTour = async (req, res) => {
   }
 };
 
-exports.updateTour = (req, res) => {
-  res.status(200).json({
-    status: 'sucess',
-    data: {
-      tour: '<Updated Tour here...>',
-    },
-  });
+exports.updateTour = async (req, res) => {
+  try {
+    // Identificar qual Tour Desejamos modificar por meio do ID
+    await Tour.findByIdAndUpdate(req.params.id, req.body); // retorna o document antigo (antes da modificação)
+
+    const updatedTour = await Tour.findById(req.params.id);
+
+    res.status(200).json({
+      status: 'sucess',
+      data: {
+        tour: updatedTour,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
 };
 
 exports.deleteTour = (req, res) => {
+  3;
   res.status(204).json({
     status: 'sucess',
     data: null,
