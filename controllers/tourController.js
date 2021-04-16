@@ -1,4 +1,5 @@
 const fs = require('fs');
+const Tour = require('../models/tourModel'); // importando o modelo
 
 // Data
 const toursData = JSON.parse(
@@ -58,31 +59,25 @@ exports.getTour = (req, res) => {
   });
 };
 
-exports.createNewTour = (req, res) => {
-  // Por padrão os dados enviados estarão no body da request, porém, usando o express estes só estam disponiveis através dos middlewares
-  // console.log(req.body);
+exports.createNewTour = async (req, res) => {
+  try {
+    // Creating new Tour
+    const newTour = await Tour.create(req.body);
 
-  // Como estamos usando um JSON como um DB ficticio, precisamos definir um id
-  const newId = toursData[toursData.length - 1].id + 1;
-  const newTour = { id: newId, ...req.body };
-
-  // Adicionando novo tour ao "DB" -> Como newTour é um OBJ, devemos converte-lo antes de adicionar ao arquivo json.
-  toursData.push(newTour);
-  fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
-    JSON.stringify(toursData),
-    (err) => {
-      // 201 === Created
-      res.status(201).json({
-        status: 'sucess',
-        data: {
-          tour: newTour,
-        },
-      });
-    }
-  );
-
-  // Obs: Mesmo quando estamos enviando um dado do client, é necessário enviar uma response do server
+    // 201 === Created
+    res.status(201).json({
+      status: 'success',
+      data: {
+        tour: newTour,
+      },
+    });
+  } catch (err) {
+    // 400 === Bad request
+    res.status(400).json({
+      status: 'fail',
+      message: 'Failed to create a new Tour',
+    });
+  }
 };
 
 exports.updateTour = (req, res) => {
