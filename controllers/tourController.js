@@ -8,7 +8,7 @@ const toursData = JSON.parse(
 
 // ROUTE HANDLERS (Controlers)
 
-// Middleware param controller
+// Middleware param  - Controller
 exports.checkId = (req, res, next, value) => {
   if (value > toursData.length - 1) {
     return res.status(404).json({
@@ -31,10 +31,28 @@ exports.checkNewTourData = (req, res, next) => {
   next();
 };
 
+// Aplicando filtros por meio do tratamento da query string
+
 exports.getAllTours = async (req, res) => {
   try {
+    // Aplicando Filtros à API
+
+    // Removendo campos que não estão presentes nos documents
+    const excludedFields = ['sort', 'page', 'limit', 'fields'];
+    const queryObj = { ...req.query };
+    excludedFields.forEach((el) => delete queryObj[el]); // Removendo propriedades do Query ObJ
+
+    // Filtros Avançados - uso de operadores (lt,lte, gt, gte)
+
+    // filterObj = {difficulty: "easy", duration: { $lte: 5}} - MongoDB
+    let queryString = JSON.stringify(queryObj);
+    queryString = queryString.replace(
+      /\b(gt|gte|lt|lte)\b/g,
+      (match) => `$${match}`
+    );
+
     // Query MongoDB -> db.tours.find()
-    const tours = await Tour.find();
+    const tours = await Tour.find(JSON.parse(queryString));
     res.status(200).json({
       status: 'success',
       results: tours.length,
@@ -94,9 +112,10 @@ exports.createNewTour = async (req, res) => {
 exports.updateTour = async (req, res) => {
   try {
     // Identificar qual Tour Desejamos modificar por meio do ID
-    await Tour.findByIdAndUpdate(req.params.id, req.body); // retorna o document antigo (antes da modificação)
-
-    const updatedTour = await Tour.findById(req.params.id);
+    const updatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // OBS: Se não adicionarmos o objeto de opções o valor preenchido na promise é o document antigo.
+      runValidators: true, // if true, update validators validate the update operation against the model's schema.
+    });
 
     res.status(200).json({
       status: 'sucess',

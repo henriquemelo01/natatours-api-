@@ -7,9 +7,9 @@ const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
-// MIDDLEWARES
+// MIDDLEWARES Globais
 
-app.use(express.json());
+app.use(express.json()); // nos possibillita ter acesso ao body da request
 app.use((req, res, next) => {
   console.log('Hello from the middleware ');
   next();
